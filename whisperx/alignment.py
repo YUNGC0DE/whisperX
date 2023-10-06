@@ -79,7 +79,8 @@ def load_align_model(language_code, device, model_name=None, model_dir=None):
         except Exception as e:
             print(e)
             print(f"Error loading model from huggingface, check https://huggingface.co/models for finetuned wav2vec2.0 models")
-            raise ValueError(f'The chosen align_model "{model_name}" could not be found in huggingface (https://huggingface.co/models) or torchaudio (https://pytorch.org/audio/stable/pipelines.html#id14)')
+            processor = Wav2Vec2Processor.from_pretrained(model_name, local_files_only=True)
+            align_model = Wav2Vec2ForCTC.from_pretrained(model_name, local_files_only=True)
         pipeline_type = "huggingface"
         align_model = align_model.to(device)
         labels = processor.tokenizer.get_vocab()
