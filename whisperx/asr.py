@@ -282,7 +282,6 @@ class FasterWhisperPipeline(Pipeline):
             cur_len = seg["end"] - seg["start"]
             if cur_len > max_len:
                 max_len = cur_len
-                print(max_len)
                 f1 = int(seg['start'] * SAMPLE_RATE)
                 audio_to_detect_language = audio[f1:]
                 
