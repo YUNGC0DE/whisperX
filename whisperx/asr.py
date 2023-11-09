@@ -275,8 +275,19 @@ class FasterWhisperPipeline(Pipeline):
             onset=self._vad_params["vad_onset"],
             offset=self._vad_params["vad_offset"],
         )
+        # detect language only where speech
+        max_len = -1
+        audio_to_detect_language = None
+        for seg in vad_segments:
+            cur_len = seg["end"] - seg["start"]
+            if cur_len > max_len:
+                max_len = cur_len
+                print(max_len)
+                f1 = int(seg['start'] * SAMPLE_RATE)
+                audio_to_detect_language = audio[f1:]
+                
         if self.tokenizer is None:
-            language = language or self.detect_language(audio)
+            language = language or self.detect_language(audio_to_detect_language)
             task = task or "transcribe"
             self.tokenizer = faster_whisper.tokenizer.Tokenizer(self.model.hf_tokenizer,
                                                                 self.model.model.is_multilingual, task=task,
