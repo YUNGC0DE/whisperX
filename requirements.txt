@@ -1,4 +1,4 @@
-git+https://github.com/SYSTRAN/faster-whisper.git@30844096334757d1cf0f8f2e4f317398e16090ac
+faster-whisper @ git+https://github.com/SYSTRAN/faster-whisper.git@30844096334757d1cf0f8f2e4f317398e16090ac
 transformers
 pandas
 setuptools>=65
