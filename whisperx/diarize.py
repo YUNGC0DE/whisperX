@@ -5,6 +5,7 @@ from typing import Optional, Union
 import torch
 
 from .audio import load_audio, SAMPLE_RATE
+from .types import TranscriptionResult, AlignedTranscriptionResult
 
 
 class DiarizationPipeline:
@@ -18,21 +19,31 @@ class DiarizationPipeline:
             device = torch.device(device)
         self.model = Pipeline.from_pretrained(model_name, use_auth_token=use_auth_token).to(device)
 
-    def __call__(self, audio: Union[str, np.ndarray], min_speakers=None, max_speakers=None):
+    def __call__(
+        self,
+        audio: Union[str, np.ndarray],
+        num_speakers: Optional[int] = None,
+        min_speakers: Optional[int] = None,
+        max_speakers: Optional[int] = None,
+    ):
         if isinstance(audio, str):
             audio = load_audio(audio)
         audio_data = {
             'waveform': torch.from_numpy(audio[None, :]),
             'sample_rate': SAMPLE_RATE
         }
-        segments = self.model(audio_data, min_speakers=min_speakers, max_speakers=max_speakers)
+        segments = self.model(audio_data, num_speakers = num_speakers, min_speakers=min_speakers, max_speakers=max_speakers)
         diarize_df = pd.DataFrame(segments.itertracks(yield_label=True), columns=['segment', 'label', 'speaker'])
         diarize_df['start'] = diarize_df['segment'].apply(lambda x: x.start)
         diarize_df['end'] = diarize_df['segment'].apply(lambda x: x.end)
         return diarize_df
 
 
-def assign_word_speakers(diarize_df, transcript_result, fill_nearest=False):
+def assign_word_speakers(
+    diarize_df: pd.DataFrame,
+    transcript_result: Union[AlignedTranscriptionResult, TranscriptionResult],
+    fill_nearest=False,
+) -> dict:
     transcript_segments = transcript_result["segments"]
     for seg in transcript_segments:
         # assign speaker to segment (if any)
@@ -68,7 +79,7 @@ def assign_word_speakers(diarize_df, transcript_result, fill_nearest=False):
 
 
 class Segment:
-    def __init__(self, start, end, speaker=None):
+    def __init__(self, start:int, end:int, speaker:Optional[str]=None):
         self.start = start
         self.end = end
         self.speaker = speaker

@@ -23,7 +23,7 @@
 </p>
 
 
-<img width="1216" align="center" alt="whisperx-arch" src="figures/pipeline.png">
+<img width="1216" align="center" alt="whisperx-arch" src="https://raw.githubusercontent.com/m-bain/whisperX/refs/heads/main/figures/pipeline.png">
 
 
 <!-- <p align="left">Whisper-Based Automatic Speech Recognition (ASR) with improved timestamp accuracy + quality via forced phoneme alignment and voice-activity based batching for fast inference.</p> -->
@@ -80,25 +80,44 @@ GPU execution requires the NVIDIA libraries cuBLAS 11.x and cuDNN 8.x to be inst
 
 See other methods [here.](https://pytorch.org/get-started/previous-versions/#v200)
 
-### 3. Install this repo
+### 3. Install WhisperX
 
-`pip install git+https://github.com/m-bain/whisperx.git`
+You have several installation options:
 
-If already installed, update package to most recent commit
+#### Option A: Stable Release (recommended)
+Install the latest stable version from PyPI:
 
-`pip install git+https://github.com/m-bain/whisperx.git --upgrade`
-
-If wishing to modify this package, clone and install in editable mode:
+```bash
+pip install whisperx
 ```
-$ git clone https://github.com/m-bain/whisperX.git
-$ cd whisperX
-$ pip install -e .
+
+#### Option B: Development Version
+Install the latest development version directly from GitHub (may be unstable):
+
+```bash
+pip install git+https://github.com/m-bain/whisperx.git
 ```
+
+If already installed, update to the most recent commit:
+
+```bash
+pip install git+https://github.com/m-bain/whisperx.git --upgrade
+```
+
+#### Option C: Development Mode
+If you wish to modify the package, clone and install in editable mode:
+```bash
+git clone https://github.com/m-bain/whisperX.git
+cd whisperX
+pip install -e .
+```
+
+> **Note**: The development version may contain experimental features and bugs. Use the stable PyPI release for production environments.
 
 You may also need to install ffmpeg, rust etc. Follow openAI instructions here https://github.com/openai/whisper#setup.
 
 ### Speaker Diarization
-To **enable Speaker Diarization**, include your Hugging Face access token (read) that you can generate from [Here](https://huggingface.co/settings/tokens) after the `--hf_token` argument and accept the user agreement for the following models: [Segmentation](https://huggingface.co/pyannote/segmentation-3.0) and [Speaker-Diarization-3.0](https://huggingface.co/pyannote/speaker-diarization-3.0) (if you choose to use Speaker-Diarization 2.x, follow requirements [here](https://huggingface.co/pyannote/speaker-diarization) instead.)
+To **enable Speaker Diarization**, include your Hugging Face access token (read) that you can generate from [Here](https://huggingface.co/settings/tokens) after the `--hf_token` argument and accept the user agreement for the following models: [Segmentation](https://huggingface.co/pyannote/segmentation-3.0) and [Speaker-Diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) (if you choose to use Speaker-Diarization 2.x, follow requirements [here](https://huggingface.co/pyannote/speaker-diarization) instead.)
 
 > **Note**<br>
 > As of Oct 11, 2023, there is a known issue regarding slow performance with pyannote/Speaker-Diarization-3.0 in whisperX. It is due to dependency conflicts between faster-whisper and pyannote-audio 3.0.0. Please see [this issue](https://github.com/m-bain/whisperX/issues/499) for more details and potential workarounds.
@@ -110,7 +129,7 @@ To **enable Speaker Diarization**, include your Hugging Face access token (read)
 
 Run whisper on example segment (using default params, whisper small) add `--highlight_words True` to visualise word timings in the .srt file.
 
-    whisperx examples/sample01.wav
+    whisperx path/to/audio.wav
 
 
 Result using *WhisperX* with forced alignment to wav2vec2.0 large:
@@ -124,27 +143,27 @@ https://user-images.githubusercontent.com/36994049/207743923-b4f0d537-29ae-4be2-
 
 For increased timestamp accuracy, at the cost of higher gpu mem, use bigger models (bigger alignment model not found to be that helpful, see paper) e.g.
 
-    whisperx examples/sample01.wav --model large-v2 --align_model WAV2VEC2_ASR_LARGE_LV60K_960H --batch_size 4
+    whisperx path/to/audio.wav --model large-v2 --align_model WAV2VEC2_ASR_LARGE_LV60K_960H --batch_size 4
 
 
 To label the transcript with speaker ID's (set number of speakers if known e.g. `--min_speakers 2` `--max_speakers 2`):
 
-    whisperx examples/sample01.wav --model large-v2 --diarize --highlight_words True
+    whisperx path/to/audio.wav --model large-v2 --diarize --highlight_words True
 
 To run on CPU instead of GPU (and for running on Mac OS X):
 
-    whisperx examples/sample01.wav --compute_type int8
+    whisperx path/to/audio.wav --compute_type int8
 
 ### Other languages
 
-The phoneme ASR alignment model is *language-specific*, for tested languages these models are [automatically picked from torchaudio pipelines or huggingface](https://github.com/m-bain/whisperX/blob/e909f2f766b23b2000f2d95df41f9b844ac53e49/whisperx/transcribe.py#L22).
+The phoneme ASR alignment model is *language-specific*, for tested languages these models are [automatically picked from torchaudio pipelines or huggingface](https://github.com/m-bain/whisperX/blob/f2da2f858e99e4211fe4f64b5f2938b007827e17/whisperx/alignment.py#L24-L58).
 Just pass in the `--language` code, and use the whisper `--model large`.
 
-Currently default models provided for `{en, fr, de, es, it, ja, zh, nl, uk, pt}`. If the detected language is not in this list, you need to find a phoneme-based ASR model from [huggingface model hub](https://huggingface.co/models) and test it on your data.
+Currently default models provided for `{en, fr, de, es, it}` via torchaudio pipelines and many other languages via Hugging Face. Please find the list of currently supported languages under `DEFAULT_ALIGN_MODELS_HF` on [alignment.py](https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py). If the detected language is not in this list, you need to find a phoneme-based ASR model from [huggingface model hub](https://huggingface.co/models) and test it on your data.
 
 
 #### E.g. German
-    whisperx --model large-v2 --language de examples/sample_de_01.wav
+    whisperx --model large-v2 --language de path/to/audio.wav
 
 https://user-images.githubusercontent.com/36994049/208298811-e36002ba-3698-4731-97d4-0aebd07e0eb3.mov
 
@@ -164,6 +183,10 @@ compute_type = "float16" # change to "int8" if low on GPU mem (may reduce accura
 
 # 1. Transcribe with original whisper (batched)
 model = whisperx.load_model("large-v2", device, compute_type=compute_type)
+
+# save model to local path (optional)
+# model_dir = "/path/"
+# model = whisperx.load_model("large-v2", device, compute_type=compute_type, download_root=model_dir)
 
 audio = whisperx.load_audio(audio_file)
 result = model.transcribe(audio, batch_size=batch_size)
@@ -195,6 +218,7 @@ print(result["segments"]) # segments are now assigned speaker IDs
 
 ## Demos 🚀
 
+[![Replicate (large-v3](https://img.shields.io/static/v1?label=Replicate+WhisperX+large-v3&message=Demo+%26+Cloud+API&color=blue)](https://replicate.com/victor-upmeet/whisperx) 
 [![Replicate (large-v2](https://img.shields.io/static/v1?label=Replicate+WhisperX+large-v2&message=Demo+%26+Cloud+API&color=blue)](https://replicate.com/daanelson/whisperx) 
 [![Replicate (medium)](https://img.shields.io/static/v1?label=Replicate+WhisperX+medium&message=Demo+%26+Cloud+API&color=blue)](https://replicate.com/carnifexer/whisperx) 
 
@@ -211,14 +235,14 @@ To reduce GPU memory requirements, try any of the following (2. & 3. can affect 
 
 Transcription differences from openai's whisper:
 1. Transcription without timestamps. To enable single pass batching, whisper inference is performed `--without_timestamps True`, this ensures 1 forward pass per sample in the batch. However, this can cause discrepancies the default whisper output.
-2. VAD-based segment transcription, unlike the buffered transcription of openai's. In Wthe WhisperX paper we show this reduces WER, and enables accurate batched inference
+2. VAD-based segment transcription, unlike the buffered transcription of openai's. In the WhisperX paper we show this reduces WER, and enables accurate batched inference
 3.  `--condition_on_prev_text` is set to `False` by default (reduces hallucination)
 
 <h2 align="left" id="limitations">Limitations ⚠️</h2>
 
 - Transcript words which do not contain characters in the alignment models dictionary e.g. "2014." or "£13.60" cannot be aligned and therefore are not given a timing.
 - Overlapping speech is not handled particularly well by whisper nor whisperx
-- Diarization is far from perfect (working on this with custom model v4 -- see contact me).
+- Diarization is far from perfect
 - Language specific wav2vec2 model is needed
 
 
@@ -254,7 +278,7 @@ Bug finding and pull requests are also highly appreciated to keep this project g
 
 * [ ] Add benchmarking code (TEDLIUM for spd/WER & word segmentation)
 
-* [ ] Allow silero-vad as alternative VAD option
+* [x] Allow silero-vad as alternative VAD option
 
 * [ ] Improve diarization (word level). *Harder than first thought...*
 
@@ -262,7 +286,7 @@ Bug finding and pull requests are also highly appreciated to keep this project g
 <h2 align="left" id="contact">Contact/Support 📇</h2>
 
 
-Contact maxhbain@gmail.com for queries. WhisperX v4 development is underway with with siginificantly improved diarization. To support v4 and get early access, get in touch.
+Contact maxhbain@gmail.com for queries.
 
 <a href="https://www.buymeacoffee.com/maxhbain" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
@@ -276,7 +300,9 @@ Borrows important alignment code from [PyTorch tutorial on forced alignment](htt
 And uses the wonderful pyannote VAD / Diarization https://github.com/pyannote/pyannote-audio
 
 
-Valuable VAD & Diarization Models from [pyannote audio][https://github.com/pyannote/pyannote-audio]
+Valuable VAD & Diarization Models from:
+- [pyannote audio][https://github.com/pyannote/pyannote-audio]
+- [silero vad][https://github.com/snakers4/silero-vad]
 
 Great backend from [faster-whisper](https://github.com/guillaumekln/faster-whisper) and [CTranslate2](https://github.com/OpenNMT/CTranslate2)
 
