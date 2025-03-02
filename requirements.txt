@@ -4,7 +4,7 @@ torchaudio==2.5.1
 faster-whisper==1.1.1
 onnxruntime==1.18.1
 transformers==4.49.0
-pandas==2.2.23
+pandas==2.2.3
 setuptools>=65
 nltk==3.9.1
 ctranslate2==4.5.0
